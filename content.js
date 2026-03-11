@@ -23,11 +23,23 @@ function blockTextContent() {
     const words = result.blockedWords || [];
     if (words.length === 0) return;
 
-    // Block text nodes and their parent elements
+    // Block text nodes and their article/container parent elements
     function blockWords(node) {
       if (node.nodeType === Node.TEXT_NODE) {
         for (const word of words) {
           if (new RegExp(word, "i").test(node.textContent)) {
+            // Find the closest article, div with data-testid, or container element
+            let parent = node.parentNode;
+            while (parent && parent !== document.body) {
+              if (parent.tagName === "ARTICLE" || 
+                  parent.getAttribute("data-testid") === "result" ||
+                  parent.classList.contains("result")) {
+                parent.style.filter = "blur(20px)";
+                return;
+              }
+              parent = parent.parentNode;
+            }
+            // Fallback: blur the immediate parent if no article found
             node.parentNode.style.filter = "blur(20px)";
             break;
           }
@@ -41,12 +53,14 @@ function blockTextContent() {
 
     blockWords(document.body);
 
-    // Block images whose alt text contains blocked words
+    // Block images whose alt text OR src contains blocked words
     const images = document.querySelectorAll("img, picture img");
     images.forEach(img => {
       for (const word of words) {
-        if (img.alt && new RegExp(word, "i").test(img.alt)) {
-          // Blur the image and its parent element
+        const altMatch = img.alt && new RegExp(word, "i").test(img.alt);
+        const srcMatch = img.src && new RegExp(word, "i").test(img.src);
+        
+        if (altMatch || srcMatch) {
           img.style.filter = "blur(20px)";
           img.parentNode.style.filter = "blur(20px)";
           scannedImages.add(img);
