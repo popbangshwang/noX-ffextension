@@ -1,17 +1,23 @@
 // Only run if tab is visible
+
+let blockedWordsEnabled = true;
+let blockedFacesEnabled = true;
+let observer;
+const scannedImages = new Set();
+
 function initializeBlocking() {
   browser.storage.local.get(["blockedWordsEnabled", "blockedFacesEnabled"]).then((result) => {
-    const wordsEnabled = result.blockedWordsEnabled !== false;
-    const facesEnabled = result.blockedFacesEnabled !== false;
+    blockedWordsEnabled = result.blockedWordsEnabled !== false;
+    blockedFacesEnabled = result.blockedFacesEnabled !== false;
 
     // Only block words if enabled
-    if (wordsEnabled) {
+    if (blockedWordsEnabled) {
       blockTextContent();
-      startObserver(facesEnabled); // Start observer, pass whether faces are enabled
+      startObserver(blockedFacesEnabled); // Start observer, pass whether faces are enabled
     }
 
     // Only scan images for faces if faces module is enabled
-    if (facesEnabled && !wordsEnabled) {
+    if (blockedFacesEnabled && !blockedWordsEnabled) {
       scanImages();
       startObserver(true);
     }
@@ -83,8 +89,6 @@ function blockTextContent() {
   });
 }
 
-const scannedImages = new Set();
-
 function scanImages(imagesToScan = null) {
   const images = imagesToScan || document.querySelectorAll("img, picture img");
   
@@ -107,8 +111,6 @@ function scanImages(imagesToScan = null) {
     });
   });
 }
-
-let observer;
 
 function startObserver(useFaces = true) {
   observer = new MutationObserver((mutations) => {
@@ -141,6 +143,22 @@ function stopObserver() {
     observer.disconnect();
   }
 }
+
+// Listen for toggle changes from options page
+browser.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === "local") {
+    if (changes.blockedWordsEnabled || changes.blockedFacesEnabled) {
+      console.log("Toggle state changed, reinitializing...");
+      // Clear previous blur styles
+      document.querySelectorAll("[style*='blur']").forEach(el => {
+        el.style.filter = "";
+      });
+      scannedImages.clear();
+      stopObserver();
+      initializeBlocking();
+    }
+  }
+});
 
 // Initialize on page load if visible
 if (document.visibilityState === "visible") {
