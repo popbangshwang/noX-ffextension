@@ -8,12 +8,21 @@ let reinitializeTimeout;
 /** @ts-ignore */
 window.scannedImages = new Set();
 window.cachedBlockedWords = [];
+window.cachedWhitelistedUrls = [];
 
-function initializeBlocking() {
-  browser.storage.local.get(["blockedWordsEnabled", "blockedFacesEnabled", "blockedWords"]).then((result) => {
+async function initializeBlocking() {
+  // Check if URL is whitelisted first (early exit for performance)
+  const urlWhitelisted = await isUrlWhitelisted();
+  if (urlWhitelisted) {
+    console.log("URL is whitelisted, extension disabled on this site");
+    return;
+  }
+
+  browser.storage.local.get(["blockedWordsEnabled", "blockedFacesEnabled", "blockedWords", "whitelistedUrls"]).then((result) => {
     blockedWordsEnabled = result.blockedWordsEnabled !== false;
     blockedFacesEnabled = result.blockedFacesEnabled !== false;
     window.cachedBlockedWords = result.blockedWords || []; // Cache the blocked words
+    window.cachedWhitelistedUrls = result.whitelistedUrls || []; // Cache the url whitelist
 
     // Only block words if enabled
     if (blockedWordsEnabled) {
@@ -32,7 +41,7 @@ function initializeBlocking() {
 // Listen for toggle changes from options page
 browser.storage.onChanged.addListener((changes, areaName) => {
   if (areaName === "local") {
-    if (changes.blockedWordsEnabled || changes.blockedFacesEnabled) {
+    if (changes.blockedWordsEnabled || changes.blockedFacesEnabled || changes.whitelistedUrls) {
       clearTimeout(reinitializeTimeout);
       reinitializeTimeout = setTimeout(()=> {
         console.log("Toggle state changed, reinitializing...");

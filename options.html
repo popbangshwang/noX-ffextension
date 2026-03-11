@@ -49,6 +49,13 @@
       </div>
     </div>
 
+    <div class="options-section">
+       <h2>URL Whitelist</h2>
+       <p>Sites where the extension will not run. Enter one domain per line.</p>
+       <textarea id="whitelistedUrls" placeholder="twitch.tv&#10;youtube.com&#10;example.com" rows="8"></textarea>
+       <button id="saveWhitelist">Save Whitelist</button>
+    </div>
+
     <div class="section">
       <h2>Blocked Words</h2>
       <input id="wordInput" placeholder="Add word..." />
@@ -90,5 +97,6 @@
     <script src="options_blockedWords.js"></script>
     <script src="options_faces.js"></script>
     <script src="options_settings.js"></script>
+    <script src="options_whitelist.js"></script>
   </body>
 </html>
