@@ -9,6 +9,10 @@
       button { margin-left: 5px; }
       .section { margin-top: 24px; }
       img { border-radius: 4px; }
+      .small-text { font-size: small; color: #555; margin-top: 8px; }
+      .toggle-container { margin-bottom: 16px; }
+      .toggle-label { display: flex; align-items: center; gap: 10px; }
+      .toggle-label input[type="checkbox"] { width: 20px; height: 20px; }
 
       @media (prefers-color-scheme: dark) {
         body {
@@ -28,21 +32,21 @@
   </head>
   <body>
     <div class="section">
-      <h2>Blocked Words</h2>
-      <input id="wordInput" placeholder="Add word..." />
-      <button id="addBtn">Add</button>
-      <ul id="wordList"></ul>
-    </div>
-
-    <div class="section">
-      <h2>Blocked Faces</h2>
-      <input id="personName" placeholder="Person name..." />
-      <input id="faceImage" type="file" accept="image/*" />
-      <p style="font-size:small;color:#555;">
-        For best accuracy, upload 3 to 5 clear images of each person, showing different angles and expressions.<br>
-        Images should be at least 120x120 pixels.
-      </p>
-      <ul id="faceList"></ul>
+      <h2>Modules</h2>
+      <div class="toggle-container">
+        <label class="toggle-label">
+          <input id="blockedWordsToggle" type="checkbox" checked />
+          <span>Block Blocked Words</span>
+        </label>
+        <p class="small-text">Blocks text and alt text containing your blocked words.</p>
+      </div>
+      <div class="toggle-container">
+        <label class="toggle-label">
+          <input id="blockedFacesToggle" type="checkbox" checked />
+          <span>Block Blocked Faces</span>
+        </label>
+        <p class="small-text">Uses facial recognition to block images of specific people. Higher performance impact.</p>
+      </div>
     </div>
 
     <div class="section">
@@ -63,9 +67,28 @@
       </p>
     </div>
 
-    <script src="libs/face-api.min.js"></script>
-    <script src="options_settings.js"></script>
+    <div class="section">
+      <h2>Blocked Words</h2>
+      <input id="wordInput" placeholder="Add word..." />
+      <button id="addBtn">Add</button>
+      <ul id="wordList"></ul>
+    </div>
+
+    <div class="section">
+      <h2>Blocked Faces</h2>
+      <input id="personName" placeholder="Person name..." />
+      <input id="faceImage" type="file" accept="image/*" />
+      <p class="small-text">
+        For best accuracy, upload 3 to 5 clear images of each person, showing different angles and expressions.<br>
+        Images should be at least 120x120 pixels.
+      </p>
+      <ul id="faceList"></ul>
+    </div>
+
+    <script src="/libs/face-api.min.js"></script>
+    <script src="options_modules.js"></script>
     <script src="options_blockedWords.js"></script>
     <script src="options_faces.js"></script>
+    <script src="options_settings.js"></script>
   </body>
 </html>

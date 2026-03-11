@@ -1,10 +1,29 @@
 // Only run if tab is visible
 function initializeBlocking() {
+  browser.storage.local.get(["blockedWordsEnabled", "blockedFacesEnabled"]).then((result) => {
+    const wordsEnabled = result.blockedWordsEnabled !== false;
+    const facesEnabled = result.blockedFacesEnabled !== false;
+
+    // Only block words if enabled
+    if (wordsEnabled) {
+      blockTextContent();
+      startObserver(facesEnabled); // Start observer, pass whether faces are enabled
+    }
+
+    // Only scan images for faces if faces module is enabled
+    if (facesEnabled && !wordsEnabled) {
+      scanImages();
+      startObserver(true);
+    }
+  });
+}
+
+function blockTextContent() {
   browser.storage.local.get("blockedWords").then((result) => {
     const words = result.blockedWords || [];
     if (words.length === 0) return;
 
-    // Blur text nodes and their parent elements
+    // Block text nodes and their parent elements
     function blockWords(node) {
       if (node.nodeType === Node.TEXT_NODE) {
         for (const word of words) {
@@ -21,62 +40,65 @@ function initializeBlocking() {
     }
 
     blockWords(document.body);
-  });
 
-  scanImages();
+    // Block images whose alt text contains blocked words
+    const images = document.querySelectorAll("img, picture img");
+    images.forEach(img => {
+      for (const word of words) {
+        if (img.alt && new RegExp(word, "i").test(img.alt)) {
+          // Blur the image and its parent element
+          img.style.filter = "blur(20px)";
+          img.parentNode.style.filter = "blur(20px)";
+          scannedImages.add(img);
+          break;
+        }
+      }
+    });
+  });
 }
 
-const scannedImages = new Set(); // Track scanned images
+const scannedImages = new Set();
 
 function scanImages(imagesToScan = null) {
   const images = imagesToScan || document.querySelectorAll("img, picture img");
   
-  browser.storage.local.get("blockedWords").then((result) => {
-    const blockedWords = result.blockedWords || [];
+  images.forEach(img => {
+    // Skip if already caught by blocked_words module
+    if (scannedImages.has(img)) return;
+    scannedImages.add(img);
     
-    images.forEach(img => {
-      // Skip if already scanned
-      if (scannedImages.has(img)) return;
-      scannedImages.add(img);
-      
-      // Check alt text for blocked words
-      if (img.alt) {
-        for (const word of blockedWords) {
-          if (new RegExp(word, "i").test(img.alt)) {
-            img.style.filter = "blur(20px)";
-            return;
-          }
-        }
+    const src = img.src || img.dataset.src;
+    if (!src) return;
+    
+    browser.runtime.sendMessage({
+      type: "scan-face",
+      src: src
+    }).then(result => {
+      if (result && result.block) {
+        img.style.filter = "blur(20px)";
+        img.parentNode.style.filter = "blur(20px)";
       }
-      
-      // Check image for faces only if alt text didn't block it
-      const src = img.src || img.dataset.src;
-      if (!src) return;
-      
-      browser.runtime.sendMessage({
-        type: "scan-face",
-        src: src
-      }).then(result => {
-        if (result && result.block) {
-          img.style.filter = "blur(20px)";
-        }
-      });
     });
   });
 }
 
 let observer;
 
-function startObserver() {
-  // Only scan newly added images
+function startObserver(useFaces = true) {
   observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       mutation.addedNodes.forEach((node) => {
-        if (node.tagName === "IMG") {
-          scanImages([node]);
-        } else if (node.querySelectorAll) {
-          const images = node.querySelectorAll("img, picture img");
-          scanImages(images);
+        // Reblock text content for newly added nodes
+        blockTextContent();
+        
+        // Scan faces only if enabled
+        if (useFaces) {
+          if (node.tagName === "IMG") {
+            scanImages([node]);
+          } else if (node.querySelectorAll) {
+            const images = node.querySelectorAll("img, picture img");
+            scanImages(images);
+          }
         }
       });
     });
@@ -97,13 +119,10 @@ function stopObserver() {
 // Initialize on page load if visible
 if (document.visibilityState === "visible") {
   initializeBlocking();
-  startObserver();
 } else {
-  // Wait for tab to become visible before initializing
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && !observer) {
       initializeBlocking();
-      startObserver();
     } else if (document.visibilityState === "hidden") {
       stopObserver();
     }
