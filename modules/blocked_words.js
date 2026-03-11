@@ -62,6 +62,31 @@ function blockTextContent() {
     }
   });
 
+  // Block images based on parent container text content
+  const images2 = document.querySelectorAll("img, picture img");
+  images2.forEach(img => {
+    // Skip if already processed
+    if (window.scannedImages.has(img) || (img.style && img.style.filter === blurStyle)) return;
+    
+    // Check parent container text for blocked words
+    let parent = img.parentNode;
+    let depth = 0;
+    
+    while (parent && depth < 5) { // Limit search depth to avoid performance issues
+      for (const word of words) {
+        if (new RegExp(`\\b${word}\\b`, "i").test(parent.textContent)) {
+          img.style.filter = blurStyle;
+          parent.style.filter = blurStyle;
+          /** @ts-ignore */
+          window.scannedImages.add(img);
+          return;
+        }
+      }
+      parent = parent.parentNode;
+      depth++;
+    }
+  });
+
   // Block links ONLY within result containers, not site-wide navigation
   const resultLinks = document.querySelectorAll("article a[href], [data-testid='result'] a[href]");
   resultLinks.forEach(link => {
