@@ -3,13 +3,15 @@
 let blockedWordsEnabled = true;
 let blockedFacesEnabled = true;
 let reinitializeTimeout;
+let cachedBlockedWords = [];
 
 window.scannedImages = new Set();
 
 function initializeBlocking() {
-  browser.storage.local.get(["blockedWordsEnabled", "blockedFacesEnabled"]).then((result) => {
+  browser.storage.local.get(["blockedWordsEnabled", "blockedFacesEnabled", "blockedWords"]).then((result) => {
     blockedWordsEnabled = result.blockedWordsEnabled !== false;
     blockedFacesEnabled = result.blockedFacesEnabled !== false;
+    cachedBlockedWords = result.blockedWords || []; // Cache the blocked words
 
     // Only block words if enabled
     if (blockedWordsEnabled) {
