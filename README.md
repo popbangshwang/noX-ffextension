@@ -130,5 +130,9 @@ This project is licensed under the **Apache License 2.0** - see the [LICENSE](LI
 - **Material Design Icons**: Apache 2.0 - https://github.com/google/material-design-icons/blob/master/LICENSE
 - **TensorFlow.js** - Apache 2.0 - https://www.tensorflow.org/js
 
+### Use of AI
 
+I created this extension with the help of AI, I'm not a master javascript programmer and I used this project as a way for me to learn more about javascript. I've been writing code for far more than a decade and the internet has always been my guide. In my view if used properly AI can be the new stack-overflow. It doesn't replace the docs and I still use those.
+
+If you wish to improve this extension for everyone to use, go ahead. I hope to learn a thing or two about extensions and javascript.
 ---
