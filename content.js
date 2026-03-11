@@ -3,15 +3,17 @@
 let blockedWordsEnabled = true;
 let blockedFacesEnabled = true;
 let reinitializeTimeout;
-let cachedBlockedWords = [];
 
+// Global state accessible to all modules
+/** @ts-ignore */
 window.scannedImages = new Set();
+window.cachedBlockedWords = [];
 
 function initializeBlocking() {
   browser.storage.local.get(["blockedWordsEnabled", "blockedFacesEnabled", "blockedWords"]).then((result) => {
     blockedWordsEnabled = result.blockedWordsEnabled !== false;
     blockedFacesEnabled = result.blockedFacesEnabled !== false;
-    cachedBlockedWords = result.blockedWords || []; // Cache the blocked words
+    window.cachedBlockedWords = result.blockedWords || []; // Cache the blocked words
 
     // Only block words if enabled
     if (blockedWordsEnabled) {
@@ -38,6 +40,7 @@ browser.storage.onChanged.addListener((changes, areaName) => {
         document.querySelectorAll("[style*='blur']").forEach(el => {
           el.style.filter = "";
         });
+        /** @ts-ignore */
         window.scannedImages.clear();
         stopObserver();
         initializeBlocking();

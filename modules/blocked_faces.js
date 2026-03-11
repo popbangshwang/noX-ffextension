@@ -3,8 +3,8 @@ function scanImages(imagesToScan = null) {
   
   images.forEach(img => {
     // Skip if already caught by blocked_words module
-    if (scannedImages.has(img)) return;
-    scannedImages.add(img);
+    if (window.scannedImages.has(img)) return;
+    window.scannedImages.add(img);
     
     const src = img.src || img.dataset.src;
     if (!src) return;

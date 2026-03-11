@@ -1,6 +1,6 @@
 function blockTextContent() {
-  browser.storage.local.get("blockedWords").then((result) => {
-    const words = result.blockedWords || [];
+    // Use cached words instead of fetching from storage
+    const words = window.cachedBlockedWords || [];
     if (words.length === 0) return;
 
     // Block text nodes and their article/container parent elements
@@ -41,7 +41,8 @@ function blockTextContent() {
         if (altMatch || srcMatch) {
           img.style.filter = "blur(20px)";
           img.parentNode.style.filter = "blur(20px)";
-          scannedImages.add(img);
+          /** @ts-ignore */
+          window.scannedImages.add(img);
           break;
         }
       }
@@ -55,10 +56,10 @@ function blockTextContent() {
         
         if (hrefMatch) {
           link.style.filter = "blur(20px)";
-          scannedImages.add(link);
+          /** @ts-ignore */
+          window.scannedImages.add(link);
           break;
         }
       }
     });
-  });
 }
