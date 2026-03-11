@@ -2,9 +2,10 @@
   "manifest_version": 2,
   "name": "noX-ffextension",
   "version": "1.0",
-  "description": "Blocks user-specified words and, in future, faces/images related to those words.",
+  "description": "Blocks user-specified words and faces/images related to those words.",
   "permissions": [
-    "storage"
+    "storage",
+    "<all_urls>"
   ],
   "content_scripts": [
     {
@@ -13,9 +14,18 @@
     }
   ],
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["libs/face-api.min.js", "background.js"]
   },
   "browser_action": {
     "default_popup": "popup.html"
-  }
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "web_accessible_resources": [
+    "models/ssd_mobilenetv1/*",
+    "models/face_landmark_68/*",
+    "models/face_recognition/*"
+  ]
 }

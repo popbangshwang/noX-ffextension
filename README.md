@@ -23,6 +23,8 @@ Build a Firefox extension that blocks user-specified words and, eventually, imag
 4. Store blocked words in extension storage
 5. (Future) Add options page for advanced settings
 6. (Future) Add image/face blocking logic
+7. Add OCR support for images. Some image embed text into the image, so using OCR we can perhaps skip the step of having to use facial recognition and just rely on the text in the image.
+8. Database of phrases that the person says. save along as a pair 'Trump:Billions and Billions' compare OCR and could even compare to text on page.
 
 ## Notes
 

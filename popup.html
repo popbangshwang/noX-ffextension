@@ -1,19 +1,29 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>noX-ffextension Settings</title>
+    <title>noX-ffextension</title>
     <style>
-      body { font-family: sans-serif; width: 250px; margin: 10px; }
-      input { width: 140px; }
-      ul { padding-left: 20px; }
-      button { margin-left: 5px; }
+      body { font-family: sans-serif; width: 150px; margin: 10px; }
+      button { width: 100%; }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: #181a1b;
+          color: #eee;
+        }
+        input, button {
+          background: #222;
+          color: #eee;
+          border: 1px solid #444;
+        }
+        h2 {
+          color: #fff;
+        }
+      }
     </style>
   </head>
   <body>
-    <h3>Blocked Words</h3>
-    <input id="wordInput" placeholder="Add word..." />
-    <button id="addBtn">Add</button>
-    <ul id="wordList"></ul>
+    <button id="configBtn">Config</button>
     <script src="popup.js"></script>
   </body>
 </html>
