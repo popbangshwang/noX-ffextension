@@ -1,0 +1,5 @@
+libs/face-api.min.js
+models/
+node_modules
+*.log
+.DS_Store
