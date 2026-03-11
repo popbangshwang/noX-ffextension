@@ -27,8 +27,7 @@ function blockTextContent() {
     function blockWords(node) {
       if (node.nodeType === Node.TEXT_NODE) {
         for (const word of words) {
-          if (new RegExp(word, "i").test(node.textContent)) {
-            // Find the closest article, div with data-testid, or container element
+          if (new RegExp(`\\b${word}\\b`, "i").test(node.textContent)) {
             let parent = node.parentNode;
             while (parent && parent !== document.body) {
               if (parent.tagName === "ARTICLE" || 
@@ -39,7 +38,6 @@ function blockTextContent() {
               }
               parent = parent.parentNode;
             }
-            // Fallback: blur the immediate parent if no article found
             node.parentNode.style.filter = "blur(20px)";
             break;
           }
@@ -57,13 +55,27 @@ function blockTextContent() {
     const images = document.querySelectorAll("img, picture img");
     images.forEach(img => {
       for (const word of words) {
-        const altMatch = img.alt && new RegExp(word, "i").test(img.alt);
-        const srcMatch = img.src && new RegExp(word, "i").test(img.src);
+        const altMatch = img.alt && new RegExp(`\\b${word}\\b`, "i").test(img.alt);
+        const srcMatch = img.src && new RegExp(`\\b${word}\\b`, "i").test(img.src);
         
         if (altMatch || srcMatch) {
           img.style.filter = "blur(20px)";
           img.parentNode.style.filter = "blur(20px)";
           scannedImages.add(img);
+          break;
+        }
+      }
+    });
+
+    // Block links ONLY within result containers, not site-wide navigation
+    const resultLinks = document.querySelectorAll("article a[href], [data-testid='result'] a[href]");
+    resultLinks.forEach(link => {
+      for (const word of words) {
+        const hrefMatch = link.href && new RegExp(`\\b${word}\\b`, "i").test(link.href);
+        
+        if (hrefMatch) {
+          link.style.filter = "blur(20px)";
+          scannedImages.add(link);
           break;
         }
       }
