@@ -2,12 +2,16 @@ function scanImages(imagesToScan = null) {
   const images = imagesToScan || document.querySelectorAll("img, picture img");
   
   images.forEach(img => {
-    // Skip if already caught by blocked_words module
+    // Skip if already caught or scanned
     if (window.scannedImages.has(img)) return;
-    window.scannedImages.add(img);
+    
+    // Skip if already blurred
+    if (img.style && img.style.filter === "blur(20px)") return;
     
     const src = img.src || img.dataset.src;
     if (!src) return;
+    
+    window.scannedImages.add(img);
     
     browser.runtime.sendMessage({
       type: "scan-face",
