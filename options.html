@@ -50,24 +50,6 @@
     </div>
 
     <div class="section">
-      <label for="similarityThreshold">Face Similarity Threshold:</label>
-      <input 
-        id="similarityThreshold" 
-        type="range" 
-        min="0.5" 
-        max="1" 
-        step="0.05" 
-        value="0.8" 
-        style="width: 200px;"
-      />
-      <span id="thresholdValue">0.80</span>
-      <p class="small-text">
-        Higher values = stricter matching (fewer false positives, may miss some matches).<br>
-        Lower values = looser matching (more matches, may have more false positives).
-      </p>
-    </div>
-
-    <div class="section">
       <h2>Blocked Words</h2>
       <input id="wordInput" placeholder="Add word..." />
       <button id="addBtn">Add</button>
@@ -83,6 +65,24 @@
         Images should be at least 120x120 pixels.
       </p>
       <ul id="faceList"></ul>
+    </div>
+
+    <div class="section">
+      <label for="similarityThreshold">Face Similarity Threshold:</label>
+      <input 
+        id="similarityThreshold" 
+        type="range" 
+        min="0.5" 
+        max="1" 
+        step="0.05" 
+        value="0.8" 
+        style="width: 200px;"
+      />
+      <span id="thresholdValue">0.80</span>
+      <p class="small-text">
+        Higher values = stricter matching (fewer false positives, may miss some matches).<br>
+        Lower values = looser matching (more matches, may have more false positives).
+      </p>
     </div>
 
     <script src="/libs/face-api.min.js"></script>
