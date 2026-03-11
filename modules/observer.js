@@ -3,17 +3,22 @@ let observer;
 function startObserver(useFaces = true) {
   observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
+      // Only process childList mutations (ignore attribute and text changes)
+      if (mutation.type !== 'childList') return;
+      
       mutation.addedNodes.forEach((node) => {
-        // Reblock text content for newly added nodes
+        // Skip non-element nodes (text nodes, comments, etc.)
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+        
         blockTextContent();
         
-        // Scan faces only if enabled
         if (useFaces) {
           if (node.tagName === "IMG") {
             scanImages([node]);
           } else if (node.querySelectorAll) {
             const images = node.querySelectorAll("img, picture img");
-            scanImages(images);
+            // Only scan if images were actually found
+            if (images.length > 0) scanImages(images);
           }
         }
       });
@@ -23,6 +28,7 @@ function startObserver(useFaces = true) {
   observer.observe(document.body, {
     childList: true,
     subtree: true
+    // Removed attributes: true and characterData: true to reduce observer triggers
   });
 }
 
