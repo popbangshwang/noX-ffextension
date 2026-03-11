@@ -109,4 +109,26 @@ Build a Firefox extension that blocks user-specified words and, eventually, imag
 6. Compare with blocked identities
 7. Blur image if match
 
+## Credits & Attribution
+
+### Libraries
+- **face-api.js** - Facial recognition library by [Vladimir Mandic](https://github.com/vladmandic/face-api)
+  - Licensed under MIT License
+  - Models provided by [TensorFlow.js](https://www.tensorflow.org/js)
+
+### Icons
+- Smiley face icon from [Material Design Icons](https://fonts.google.com/icons) by Google
+  - Licensed under Apache 2.0
+
+## License
+
+This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.
+
+### Third-Party Licenses
+
+- **face-api.js**: MIT License - https://github.com/vladmandic/face-api/blob/master/LICENSE
+- **Material Design Icons**: Apache 2.0 - https://github.com/google/material-design-icons/blob/master/LICENSE
+- **TensorFlow.js** - Apache 2.0 - https://www.tensorflow.org/js
+
+
 ---

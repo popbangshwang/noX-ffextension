@@ -10,7 +10,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "js": ["modules/blocked_words.js", "modules/blocked_faces.js", "modules/observer.js", "content.js"]
     }
   ],
   "background": {
@@ -27,5 +27,10 @@
     "models/ssd_mobilenetv1/*",
     "models/face_landmark_68/*",
     "models/face_recognition/*"
-  ]
+  ],
+  "icons": {
+    "16": "icon.svg",
+    "48": "icon.svg",
+    "128": "icon.svg"
+  }
 }
