@@ -9,6 +9,7 @@ let reinitializeTimeout;
 window.scannedImages = new Set();
 window.cachedBlockedWords = [];
 window.cachedWhitelistedUrls = [];
+window.cachedBlurAmount = 20; // Default blur amount
 
 async function initializeBlocking() {
   // Check if URL is whitelisted first (early exit for performance)
@@ -18,11 +19,12 @@ async function initializeBlocking() {
     return;
   }
 
-  browser.storage.local.get(["blockedWordsEnabled", "blockedFacesEnabled", "blockedWords", "whitelistedUrls"]).then((result) => {
+  browser.storage.local.get(["blockedWordsEnabled", "blockedFacesEnabled", "blockedWords", "whitelistedUrls", "blurAmount"]).then((result) => {
     blockedWordsEnabled = result.blockedWordsEnabled !== false;
     blockedFacesEnabled = result.blockedFacesEnabled !== false;
     window.cachedBlockedWords = result.blockedWords || []; // Cache the blocked words
     window.cachedWhitelistedUrls = result.whitelistedUrls || []; // Cache the url whitelist
+    window.cachedBlurAmount = result.blurAmount || 20; // Cache blur amount
 
     // Only block words if enabled
     if (blockedWordsEnabled) {
@@ -41,7 +43,7 @@ async function initializeBlocking() {
 // Listen for toggle changes from options page
 browser.storage.onChanged.addListener((changes, areaName) => {
   if (areaName === "local") {
-    if (changes.blockedWordsEnabled || changes.blockedFacesEnabled || changes.whitelistedUrls) {
+    if (changes.blockedWordsEnabled || changes.blockedFacesEnabled || changes.whitelistedUrls || changes.blurAmount) {
       clearTimeout(reinitializeTimeout);
       reinitializeTimeout = setTimeout(()=> {
         console.log("Toggle state changed, reinitializing...");
