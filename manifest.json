@@ -5,6 +5,7 @@
   "description": "Blocks user-specified words and faces/images related to those words.",
   "permissions": [
     "storage",
+    "tabs",
     "<all_urls>"
   ],
   "content_scripts": [
@@ -25,9 +26,7 @@
     "open_in_tab": true
   },
   "web_accessible_resources": [
-    "models/ssd_mobilenetv1/*",
-    "models/face_landmark_68/*",
-    "models/face_recognition/*"
+    "modules/overrides/youtube-override.js"
   ],
   "icons": {
     "16": "icon.svg",

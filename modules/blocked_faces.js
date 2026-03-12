@@ -17,7 +17,7 @@ function scanImages(imagesToScan = null) {
     
     // Skip if already blurred
     if (img.style && img.style.filter === blurStyle) {
-      console.log("Image alraedy blurred, skipping");
+      console.log("Image already blurred, skipping");
       return;
     }
 
@@ -32,9 +32,23 @@ function scanImages(imagesToScan = null) {
     }).then(result => {
       console.log("Face scan result:", result); // DEBUG
       if (result && result.block) {
-        console.log("Blocking image due to face detection"); // DEBUG
+        console.log("Blocking image and associated text due to face detection"); // DEBUG
         img.style.filter = blurStyle;
-        img.parentNode.style.filter = blurStyle;
+        
+        // Blur associated text in parent container
+        let parent = img.parentNode;
+        let depth = 0;
+        
+        while (parent && depth < 5) {
+          const textElements = parent.querySelectorAll("p, span, h1, h2, h3, h4, h5, h6, a, div");
+          textElements.forEach(el => {
+            if (el !== img && !el.contains(img)) {
+              el.style.filter = blurStyle;
+            }
+          });
+          parent = parent.parentNode;
+          depth++;
+        }
       }
     }).catch(error => {
       console.error("Face scan error:", error); // DEBUG

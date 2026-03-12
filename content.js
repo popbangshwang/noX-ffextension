@@ -82,3 +82,30 @@ if (document.visibilityState === "visible") {
     }
   }, { once: false });
 }
+
+// ============================================
+// Load site-specific overrides
+// ============================================
+
+function loadOverrides() {
+  const overridePath = browser.runtime.getURL("modules/overrides/");
+  const overrides = [
+    "youtube-override.js"
+    // Add more overrides here as needed
+  ];
+
+  overrides.forEach(override => {
+    const script = document.createElement("script");
+    script.src = overridePath + override;
+    script.onload = () => {
+      console.log(`Loaded override: ${override}`);
+    };
+    script.onerror = () => {
+      console.warn(`Failed to load override: ${override}`);
+    };
+    document.documentElement.appendChild(script);
+  });
+}
+
+// Load overrides after a short delay to ensure base modules are loaded
+setTimeout(loadOverrides, 100);

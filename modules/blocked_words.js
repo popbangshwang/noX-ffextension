@@ -2,7 +2,7 @@ function blockTextContent() {
   // Use cached words instead of fetching from storage
   /** @ts-ignore */
   const words = window.cachedBlockedWords || [];
-    /** @ts-ignore */
+  /** @ts-ignore */
   const blurAmount = window.cachedBlurAmount || 20;
   const blurStyle = `blur(${blurAmount}px)`;
 
@@ -25,11 +25,25 @@ function blockTextContent() {
                 parent.getAttribute("data-testid") === "result" ||
                 parent.classList.contains("result")) {
               parent.style.filter = blurStyle;
+              // Also blur associated images in this container
+              const images = parent.querySelectorAll("img, picture img");
+              images.forEach(img => {
+                img.style.filter = blurStyle;
+                /** @ts-ignore */
+                window.scannedImages.add(img);
+              });
               return;
             }
             parent = parent.parentNode;
           }
           node.parentNode.style.filter = blurStyle;
+          // Blur associated images in this parent
+          const siblingImages = node.parentNode.querySelectorAll("img, picture img");
+          siblingImages.forEach(img => {
+            img.style.filter = blurStyle;
+            /** @ts-ignore */
+            window.scannedImages.add(img);
+          });
           break;
         }
       }
@@ -54,7 +68,17 @@ function blockTextContent() {
       
       if (altMatch || srcMatch) {
         img.style.filter = blurStyle;
-        img.parentNode.style.filter = blurStyle;
+        // Blur associated text in parent container
+        let parent = img.parentNode;
+        let depth = 0;
+        while (parent && depth < 3) {
+          const textElements = parent.querySelectorAll("p, span, h1, h2, h3, h4, h5, h6, a");
+          textElements.forEach(el => {
+            el.style.filter = blurStyle;
+          });
+          parent = parent.parentNode;
+          depth++;
+        }
         /** @ts-ignore */
         window.scannedImages.add(img);
         break;
@@ -76,9 +100,13 @@ function blockTextContent() {
       for (const word of words) {
         if (new RegExp(`\\b${word}\\b`, "i").test(parent.textContent)) {
           img.style.filter = blurStyle;
-          //parent.style.filter = blurStyle;
           /** @ts-ignore */
           window.scannedImages.add(img);
+          // Also blur text siblings in the same container
+          const textElements = parent.querySelectorAll("p, span, h1, h2, h3, h4, h5, h6, a");
+          textElements.forEach(el => {
+            el.style.filter = blurStyle;
+          });
           return;
         }
       }
