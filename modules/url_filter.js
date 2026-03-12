@@ -8,7 +8,7 @@ async function isUrlWhitelisted() {
   
   if (whitelist.length === 0) return false; // No whitelist, run extension
   
-  const currentUrl = window.location.hostname;
+  const currentUrl = window.location.href;
   
   // Check if current domain matches any whitelisted domain
   return whitelist.some(whitelistedDomain => {
