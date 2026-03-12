@@ -76,7 +76,7 @@ function blockTextContent() {
       for (const word of words) {
         if (new RegExp(`\\b${word}\\b`, "i").test(parent.textContent)) {
           img.style.filter = blurStyle;
-          parent.style.filter = blurStyle;
+          //parent.style.filter = blurStyle;
           /** @ts-ignore */
           window.scannedImages.add(img);
           return;
