@@ -12,32 +12,35 @@ window.cachedWhitelistedUrls = [];
 window.cachedBlurAmount = 20; // Default blur amount
 
 async function initializeBlocking() {
-  // Check if URL is whitelisted first (early exit for performance)
-  const urlWhitelisted = await isUrlWhitelisted();
+  // Fetch all settings at once
+  const result = await browser.storage.local.get(["blockedWordsEnabled", "blockedFacesEnabled", "blockedWords", "whitelistedUrls", "blurAmount"]);
+  
+  // Cache everything first
+  blockedWordsEnabled = result.blockedWordsEnabled !== false;
+  blockedFacesEnabled = result.blockedFacesEnabled !== false;
+  window.cachedBlockedWords = result.blockedWords || [];
+  window.cachedWhitelistedUrls = result.whitelistedUrls || [];
+  window.cachedBlurAmount = result.blurAmount || 20;
+  
+  // Check whitelist using the module function
+  const urlWhitelisted = isUrlWhitelisted();
+  
   if (urlWhitelisted) {
     console.log("URL is whitelisted, extension disabled on this site");
     return;
   }
 
-  browser.storage.local.get(["blockedWordsEnabled", "blockedFacesEnabled", "blockedWords", "whitelistedUrls", "blurAmount"]).then((result) => {
-    blockedWordsEnabled = result.blockedWordsEnabled !== false;
-    blockedFacesEnabled = result.blockedFacesEnabled !== false;
-    window.cachedBlockedWords = result.blockedWords || []; // Cache the blocked words
-    window.cachedWhitelistedUrls = result.whitelistedUrls || []; // Cache the url whitelist
-    window.cachedBlurAmount = result.blurAmount || 20; // Cache blur amount
+  // Only block words if enabled
+  if (blockedWordsEnabled) {
+    blockTextContent();
+    startObserver(blockedFacesEnabled);
+  }
 
-    // Only block words if enabled
-    if (blockedWordsEnabled) {
-      blockTextContent();
-      startObserver(blockedFacesEnabled); // Start observer, pass whether faces are enabled
-    }
-
-    // Only scan images for faces if faces module is enabled
-    if (blockedFacesEnabled && !blockedWordsEnabled) {
-      scanImages();
-      startObserver(true);
-    }
-  });
+  // Only scan images for faces if faces module is enabled
+  if (blockedFacesEnabled && !blockedWordsEnabled) {
+    scanImages();
+    startObserver(true);
+  }
 }
 
 // Listen for toggle changes from options page
