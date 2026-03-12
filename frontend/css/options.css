@@ -1,7 +1,14 @@
 body {
   font-family: sans-serif;
-  margin: 20px;
+  margin: 20px auto;
   max-width: 500px;
+  padding: 0 20px;
+}
+
+@media (min-width: 768px) {
+  body {
+    max-width: 700px;
+  }
 }
 
 input {
