@@ -1,5 +1,6 @@
 libs/face-api.min.js
 models/
+noX-ffextension-pictures
 node_modules
 *.log
 .DS_Store
