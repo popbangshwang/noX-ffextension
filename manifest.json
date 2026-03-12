@@ -17,10 +17,11 @@
     "scripts": ["libs/face-api.min.js", "background.js"]
   },
   "browser_action": {
-    "default_popup": "popup.html"
+    "default_popup": "/frontend/popup.html",
+    "default_title": "noX-ffextension"
   },
   "options_ui": {
-    "page": "options.html",
+    "page": "frontend/options.html",
     "open_in_tab": true
   },
   "web_accessible_resources": [

@@ -1,0 +1,262 @@
+body {
+  font-family: sans-serif;
+  margin: 20px;
+  max-width: 500px;
+}
+
+input {
+  margin-bottom: 8px;
+}
+
+ul {
+  padding-left: 20px;
+}
+
+button {
+  margin-left: 5px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.section {
+  margin-top: 24px;
+  padding: 16px;
+  border-left: 4px solid #ccc;
+  background: #f9f9f9;
+  border-radius: 4px;
+}
+
+img {
+  border-radius: 4px;
+}
+
+.small-text {
+  font-size: small;
+  color: #666;
+  margin-top: 8px;
+}
+
+.toggle-container {
+  margin-bottom: 16px;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toggle-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+/* Color coding for sections */
+.whitelist-section {
+  border-left-color: #6c5ce7;
+}
+
+.words-section {
+  border-left-color: #00b894;
+}
+
+.faces-section {
+  border-left-color: #e17055;
+}
+
+.display-section {
+  border-left-color: #0984e3;
+}
+
+/* Button styling */
+button {
+  background: #0984e3;
+  color: white;
+  border: none;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background: #0770d2;
+}
+
+/* Toggle styling */
+.toggle-label input[type="checkbox"]:checked + span h2 {
+  color: inherit;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #181a1b;
+    color: #eee;
+  }
+
+  input,
+  button {
+    background: #222;
+    color: #eee;
+    border: 1px solid #444;
+  }
+
+  .section {
+    background: #1f1f1f;
+  }
+
+  button {
+    background: #0984e3;
+  }
+
+  button:hover {
+    background: #0770d2;
+  }
+
+  h2 {
+    color: #fff;
+  }
+}
+
+/* Add these styles at the end of the file */
+
+.face-accordion {
+  margin-bottom: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.face-accordion-header {
+  padding: 12px;
+  background: #f5f5f5;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.face-accordion-header:hover {
+  background: #efefef;
+}
+
+.face-accordion-header.open {
+  background: #e3f2fd;
+}
+
+.face-accordion-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.face-accordion-toggle svg {
+  width: 20px;
+  height: 20px;
+  color: #666;
+}
+
+.face-accordion-toggle.open {
+  transform: rotate(90deg);
+}
+
+.face-accordion-content {
+  display: none;
+  padding: 16px;
+  background: white;
+  border-top: 1px solid #ddd;
+}
+
+.face-accordion-content.open {
+  display: block;
+}
+
+.face-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.face-image-item {
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.face-image-item img {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  display: block;
+}
+
+.face-image-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: rgba(255, 0, 0, 0.8);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.face-image-remove:hover {
+  background: rgba(255, 0, 0, 1);
+}
+
+.face-image-remove svg {
+  width: 16px;
+  height: 16px;
+  stroke: white;
+}
+
+.face-accordion-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.face-accordion-actions button {
+  flex: 1;
+  padding: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .face-accordion {
+    border-color: #444;
+  }
+
+  .face-accordion-header {
+    background: #2a2a2a;
+    color: #fff;
+  }
+
+  .face-accordion-header:hover {
+    background: #333;
+  }
+
+  .face-accordion-header.open {
+    background: #1a3a52;
+  }
+
+  .face-accordion-content {
+    background: #1f1f1f;
+    border-top-color: #444;
+  }
+
+  .face-accordion-toggle svg {
+    color: #aaa;
+  }
+}

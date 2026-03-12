@@ -12,6 +12,13 @@ window.cachedWhitelistedUrls = [];
 window.cachedBlurAmount = 20; // Default blur amount
 
 async function initializeBlocking() {
+  // Check if extension is globally enabled
+  const { extensionEnabled } = await browser.storage.local.get("extensionEnabled");
+  if (extensionEnabled === false) {
+    console.log("Extension is disabled");
+    return;
+  }
+
   // Fetch all settings at once
   const result = await browser.storage.local.get(["blockedWordsEnabled", "blockedFacesEnabled", "blockedWords", "whitelistedUrls", "blurAmount"]);
   
@@ -46,7 +53,7 @@ async function initializeBlocking() {
 // Listen for toggle changes from options page
 browser.storage.onChanged.addListener((changes, areaName) => {
   if (areaName === "local") {
-    if (changes.blockedWordsEnabled || changes.blockedFacesEnabled || changes.whitelistedUrls || changes.blurAmount) {
+    if (changes.blockedWordsEnabled || changes.blockedFacesEnabled || changes.whitelistedUrls || changes.blurAmount || changes.extensionEnabled) {
       clearTimeout(reinitializeTimeout);
       reinitializeTimeout = setTimeout(()=> {
         console.log("Toggle state changed, reinitializing...");
