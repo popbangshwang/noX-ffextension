@@ -47,6 +47,7 @@ function renderFaces(faces) {
 browser.storage.local.get("blockedFaces").then((result) => {
   const faces = result.blockedFaces || {};
   renderFaces(faces);
+  updateFaceCount();
 });
 
 async function generateEmbedding(imageDataUrl) {
@@ -74,6 +75,7 @@ faceImage.onchange = async () => {
       faces[name].push(imgData);
       browser.storage.local.set({ blockedFaces: faces });
       renderFaces(faces);
+      updateFaceCount();
     });
 
     // Generate and store embedding
@@ -93,3 +95,8 @@ faceImage.onchange = async () => {
   };
   reader.readAsDataURL(file);
 };
+
+function updateFaceCount() {
+  const count = document.getElementById("faceList").children.length;
+  document.getElementById("faceCount").textContent = `(${count})`;
+}

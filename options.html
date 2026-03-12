@@ -55,44 +55,74 @@
       }
     </style>
   </head>
-  <body>
-    <div class="section whitelist-section">
-      <h2>URL Whitelist</h2>
-      <p>Sites where the extension will not run. Enter one domain per line.</p>
-      <textarea id="whitelistedUrls" placeholder="twitch.tv&#10;youtube.com&#10;example.com" rows="8"></textarea>
-      <button id="saveWhitelist">Save Whitelist</button>
+<body>
+  <div style="margin-bottom: 30px; border-bottom: 2px solid #0984e3; padding-bottom: 16px;">
+    <h1 style="margin: 0 0 8px 0;">noX-ffextension Settings</h1>
+    <p style="color: #666; margin: 0;">Customize how the extension blocks content</p>
+  </div>
+
+  <div id="saveNotification" style="display: none; background: #00b894; color: white; padding: 12px; border-radius: 4px; margin-bottom: 16px;">
+    ✓ Settings saved!
+  </div>
+
+  <div class="section whitelist-section">
+    <h2>URL Whitelist</h2>
+    <p>Sites where the extension will not run. Enter one domain per line.</p>
+    <textarea id="whitelistedUrls" placeholder="twitch.tv&#10;youtube.com&#10;example.com" rows="6"></textarea>
+    <button id="saveWhitelist">Save Whitelist</button>
+  </div>
+
+  <div class="section words-section">
+    <div class="toggle-container">
+      <label class="toggle-label">
+        <input id="blockedWordsToggle" type="checkbox" checked />
+        <span>
+          <h2 style="display: inline; margin: 0;">Blocked Words</h2>
+          <span id="wordCount" style="color: #666; font-size: 0.9em; margin-left: 8px;"></span>
+        </span>
+      </label>
+      <p class="small-text">Blocks text and images containing these words.</p>
+    </div>
+    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+      <input id="wordInput" placeholder="Add word...(trump)" style="flex: 1;" />
+      <button id="addBtn">Add Word</button>
+    </div>
+    <ul id="wordList"></ul>
+  </div>
+
+  <div class="section faces-section">
+    <div class="toggle-container">
+      <label class="toggle-label">
+        <input id="blockedFacesToggle" type="checkbox" checked />
+        <span>
+          <h2 style="display: inline; margin: 0;">Blocked Faces</h2>
+          <span id="faceCount" style="color: #666; font-size: 0.9em; margin-left: 8px;"></span>
+        </span>
+      </label>
+      <p class="small-text">Uses facial recognition to block images of specific people.</p>
+    </div>
+    
+    <div style="margin-bottom: 16px;">
+      <label for="personName">Person Name:</label>
+      <input id="personName" placeholder="e.g., trump" style="width: 100%; margin-top: 4px;" />
     </div>
 
-    <div class="section words-section">
-      <div class="toggle-container">
-        <label class="toggle-label">
-          <input id="blockedWordsToggle" type="checkbox" checked />
-          <span><h2 style="display: inline; margin: 0;">Blocked Words</h2></span>
-        </label>
-        <p class="small-text">Blocks text and images using your blocked words.</p>
-      </div>
-      <input id="wordInput" placeholder="Add word...(trump)" />
-      <button id="addBtn">Add</button>
-      <ul id="wordList"></ul>
-    </div>
-
-    <div class="section faces-section">
-      <div class="toggle-container">
-        <label class="toggle-label">
-          <input id="blockedFacesToggle" type="checkbox" checked />
-          <span><h2 style="display: inline; margin: 0;">Blocked Faces</h2></span>
-        </label>
-        <p class="small-text">Uses facial recognition to block images of specific people. Higher performance impact.</p>
-      </div>
-      <input id="personName" placeholder="Person name...(trump)" />
-      <input id="faceImage" type="file" accept="image/*" />
+    <div style="margin-bottom: 16px;">
+      <label for="faceImage">Upload Images:</label>
+      <input id="faceImage" type="file" accept="image/*" multiple style="margin-top: 4px;" />
       <p class="small-text">
-        For best accuracy, upload 3 to 5 clear images of each person, showing different angles and expressions.<br>
-        Images should be at least 120x120 pixels.
+        Upload 3-5 clear images per person from different angles.<br>
+        Minimum: 120x120 pixels
       </p>
-      <ul id="faceList"></ul>
-      
-      <label for="similarityThreshold">Face Similarity Threshold:</label>
+    </div>
+
+    <button id="addFaceBtn" style="margin-bottom: 16px;">Add Person</button>
+    <ul id="faceList"></ul>
+    
+    <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+    
+    <label for="similarityThreshold">Face Similarity Threshold:</label>
+    <div style="display: flex; gap: 12px; align-items: center; margin-top: 8px;">
       <input 
         id="similarityThreshold" 
         type="range" 
@@ -100,22 +130,29 @@
         max="1" 
         step="0.05" 
         value="0.8" 
-        style="width: 200px;"
+        style="flex: 1;"
       />
-      <span id="thresholdValue">0.80</span>
-      <p class="small-text">
-        Higher values = stricter matching (fewer false positives, may miss some matches).<br>
-        Lower values = looser matching (more matches, may have more false positives).
-      </p>
+      <span id="thresholdValue" style="min-width: 50px; font-weight: bold;">0.80</span>
     </div>
+    <p class="small-text">
+      <strong>Higher (0.9-1.0):</strong> Stricter matching, fewer false positives<br>
+      <strong>Lower (0.5-0.7):</strong> Looser matching, catches more
+    </p>
+  </div>
 
-    <div class="section display-section">
-      <h2>Display Settings</h2>
-      <label for="blurAmount">Blur Amount (px):</label>
-      <input type="range" id="blurAmount" min="1" max="100" step="1" value="20">
-      <span id="blurValue">20</span>px
-      <p class="small-text">Adjust how blurred blocked content appears (1-100 pixels).</p>
+  <div class="section display-section">
+    <h2>Display Settings</h2>
+    <label for="blurAmount">Blur Amount:</label>
+    <div style="display: flex; gap: 12px; align-items: center; margin-top: 8px;">
+      <input type="range" id="blurAmount" min="1" max="100" step="1" value="20" style="flex: 1;">
+      <span id="blurValue" style="min-width: 50px; font-weight: bold;">20</span>px
     </div>
+    <p class="small-text">Higher = more blur, lower = less blur. (1-100 pixels)</p>
+  </div>
+
+  <div style="margin-top: 30px; padding-top: 16px; border-top: 1px solid #ddd; text-align: center;">
+    <button id="resetBtn" style="background: #e17055;">Reset All Settings to Defaults</button>
+  </div>
 
     <script src="/libs/face-api.min.js"></script>
     <script src="options_modules.js"></script>
@@ -124,5 +161,6 @@
     <script src="options_settings.js"></script>
     <script src="options_whitelist.js"></script>
     <script src="options_display.js"></script>
+    <script src="options_reset.js"></script>
   </body>
 </html>

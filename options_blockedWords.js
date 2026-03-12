@@ -13,6 +13,7 @@ function render(words) {
       words.splice(idx, 1);
       browser.storage.local.set({ blockedWords: words });
       render(words);
+      updateWordCount();
     };
     li.appendChild(rm);
     wordList.appendChild(li);
@@ -22,6 +23,7 @@ function render(words) {
 browser.storage.local.get("blockedWords").then((result) => {
   const words = result.blockedWords || [];
   render(words);
+  updateWordCount();
 });
 
 addBtn.onclick = () => {
@@ -32,7 +34,13 @@ addBtn.onclick = () => {
       words.push(newWord);
       browser.storage.local.set({ blockedWords: words });
       render(words);
+      updateWordCount();
       input.value = "";
     }
   });
 };
+
+function updateWordCount() {
+  const count = document.getElementById("wordList").children.length;
+  document.getElementById("wordCount").textContent = `(${count})`;
+}
