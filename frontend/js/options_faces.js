@@ -15,9 +15,20 @@ Promise.all([
   console.error("Error loading models in options page:", error);
 });
 
-// Clear input on focus
+let lastPersonName = ""; // Store the last entered name
+
+// Clear input on focus if it was just populated
 personName.addEventListener("focus", () => {
-  personName.value = "";
+  if (personName.value === lastPersonName && personName.value !== "") {
+    personName.value = "";
+  }
+});
+
+// Track when user finishes editing
+personName.addEventListener("blur", () => {
+  if (personName.value.trim() !== "") {
+    lastPersonName = personName.value.trim();
+  }
 });
 
 function updateFaceCount() {
@@ -182,7 +193,7 @@ browser.storage.local.get("blockedFaces").then((result) => {
 
 // Handle file input change
 faceImage.onchange = async () => {
-  const name = personName.value.trim();
+  const name = personName.value.trim() || lastPersonName;
   if (!name) {
     alert("Please enter a person name");
     return;
@@ -230,7 +241,9 @@ faceImage.onchange = async () => {
       if (processedCount === files.length) {
         renderFaces(faces);
         updateFaceCount();
-        personName.value = "";
+        // Populate field with name for next upload, don't clear it
+        personName.value = name;
+        lastPersonName = name;
         faceImage.value = "";
         if (failedCount > 0) {
           alert(`${failedCount} image(s) had no detectable face`);
