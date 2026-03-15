@@ -11,11 +11,11 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["modules/url_filter.js", "modules/blocked_words.js", "modules/blocked_faces.js", "modules/observer.js", "content.js"]
+      "js": ["modules/url_filter.js", "modules/blocked_words.js", "modules/observer.js", "content.js"]
     }
   ],
   "background": {
-    "scripts": ["libs/face-api.min.js", "background.js"]
+    "scripts": ["load-mediapipe.js", "background.js"]
   },
   "browser_action": {
     "default_popup": "/frontend/popup.html",
@@ -26,8 +26,12 @@
     "open_in_tab": true
   },
   "web_accessible_resources": [
-    "modules/overrides/youtube-override.js"
+    "modules/blocked_faces.js",
+    "modules/overrides/youtube-override.js",
+    "mediapipe-loader.js",
+    "frontend/js/options-mediapipe-loader.js"
   ],
+  "content_security_policy": "script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://storage.googleapis.com; object-src 'self'",
   "icons": {
     "16": "icon.svg",
     "48": "icon.svg",

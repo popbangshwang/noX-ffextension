@@ -104,13 +104,18 @@
       <button id="resetBtn" style="background: #e17055;">Reset All Settings to Defaults</button>
     </div>
 
-    <script src="/libs/face-api.min.js"></script>
-    <script src="js/options_modules.js"></script>
-    <script src="js/options_blockedWords.js"></script>
-    <script src="js/options_faces.js"></script>
-    <script src="js/options_settings.js"></script>
-    <script src="js/options_whitelist.js"></script>
-    <script src="js/options_display.js"></script>
-    <script src="js/options_reset.js"></script>
+    <!-- MediaPipe and TensorFlow for options page -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4"></script>
+    <script type="module" src="/frontend/js/options-mediapipe-loader.js"></script>
+
+    <script src="/frontend/js/options_modules.js"></script>
+    <script src="/frontend/js/options_blockedWords.js"></script>
+    <script src="/frontend/js/options_faces.js"></script>
+    <script src="/frontend/js/options_settings.js"></script>
+    <script src="/frontend/js/options_whitelist.js"></script>
+    <script src="/frontend/js/options_display.js"></script>
+    <script src="/frontend/js/options_reset.js"></script>
   </body>
 </html>

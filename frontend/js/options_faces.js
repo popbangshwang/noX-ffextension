@@ -3,17 +3,40 @@ const faceImage = document.getElementById("faceImage");
 const addFaceBtn = document.getElementById("addFaceBtn");
 const faceList = document.getElementById("faceList");
 
-// Load face-api.js models from CDN
-const modelUrl = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/";
-Promise.all([
-  faceapi.nets.ssdMobilenetv1.loadFromUri(modelUrl),
-  faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl),
-  faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl)
-]).then(() => {
-  console.log("Face-api models loaded in options page");
-}).catch((error) => {
-  console.error("Error loading models in options page:", error);
-});
+// Wait for MediaPipe models to load
+let modelsReady = false;
+
+async function initializeMediaPipe() {
+  try {
+    console.log("Initializing MediaPipe in options page...");
+    
+    // Wait for window.FilesetResolver to be available
+    let attempts = 0;
+    while ((!window.FilesetResolver || !window.ImageEmbedder) && attempts < 50) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+
+    const vision = await window.FilesetResolver.forVisionTasks(
+      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm"
+    );
+    
+    window.imageEmbedder = await window.ImageEmbedder.createFromOptions(vision, {
+      baseOptions: {
+        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/image_embedder/mobilenet_v3_small/float32/1/mobilenet_v3_small.tflite"
+      },
+      runningMode: "IMAGE"
+    });
+
+    modelsReady = true;
+    console.log("✅ MediaPipe ImageEmbedder ready in options page");
+  } catch (error) {
+    console.error("Error initializing MediaPipe:", error);
+  }
+}
+
+// Initialize MediaPipe on page load
+initializeMediaPipe();
 
 let lastPersonName = ""; // Store the last entered name
 
@@ -37,13 +60,52 @@ function updateFaceCount() {
 }
 
 async function generateEmbedding(imageDataUrl) {
-  const img = await faceapi.fetchImage(imageDataUrl);
-  const detection = await faceapi
-    .detectSingleFace(img)
-    .withFaceLandmarks()
-    .withFaceDescriptor();
-  if (!detection) return null;
-  return Array.from(detection.descriptor);
+  try {
+    if (!modelsReady || !window.imageEmbedder) {
+      console.error("MediaPipe not ready yet, please wait...");
+      return null;
+    }
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = imageDataUrl;
+    
+    return new Promise((resolve) => {
+      img.onload = async () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          
+          const result = await window.imageEmbedder.embed(canvas);
+          
+          if (!result.embeddings || result.embeddings.length === 0) {
+            console.log("❌ No embedding generated for image");
+            resolve(null);
+            return;
+          }
+
+          // Use floatEmbedding directly
+          const embedding = Array.from(result.embeddings[0].floatEmbedding);
+          console.log("✅ Embedding generated successfully, length:", embedding.length);
+          resolve(embedding);
+        } catch (error) {
+          console.error("Error generating embedding:", error);
+          resolve(null);
+        }
+      };
+      
+      img.onerror = () => {
+        console.error("Error loading image");
+        resolve(null);
+      };
+    });
+  } catch (error) {
+    console.error("Error in generateEmbedding:", error);
+    return null;
+  }
 }
 
 function renderFaces(facesData) {
@@ -205,6 +267,11 @@ faceImage.onchange = async () => {
     return;
   }
 
+  if (!modelsReady) {
+    alert("MediaPipe is still loading, please wait a moment and try again...");
+    return;
+  }
+
   let processedCount = 0;
   let failedCount = 0;
 
@@ -216,7 +283,7 @@ faceImage.onchange = async () => {
       // Generate embedding first
       const embedding = await generateEmbedding(imgData);
       if (!embedding) {
-        alert(`No face detected in ${file.name}`);
+        alert(`No embedding generated for ${file.name}`);
         failedCount++;
         processedCount++;
         return;
@@ -246,7 +313,7 @@ faceImage.onchange = async () => {
         lastPersonName = name;
         faceImage.value = "";
         if (failedCount > 0) {
-          alert(`${failedCount} image(s) had no detectable face`);
+          alert(`${failedCount} image(s) had no detectable embedding`);
         }
       }
     };

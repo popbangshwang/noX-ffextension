@@ -1,202 +1,170 @@
 /**
  * YouTube-specific overrides for blocked content
- * YouTube uses custom Web Components (ytd-thumbnail) that need special handling
+ * Hooks into existing blocked_faces.js functionality
  */
 
-function applyYouTubeOverrides() {
+(function() {
   // Only run on YouTube
   if (!window.location.hostname.includes("youtube.com")) return;
 
+  console.log("🎥 YouTube override loading...");
+
   // Wait for base modules to be ready
-  if (!window.blockTextContent || !window.scanImages) {
-    console.log("YouTube override: Waiting for base modules...");
-    setTimeout(applyYouTubeOverrides, 100);
-    return;
-  }
+  let attempts = 0;
+  const waitForModules = setInterval(() => {
+    if (window.checkIfFaceShouldBeBlocked && window.cachedBlockedWords) {
+      clearInterval(waitForModules);
+      applyYouTubeOverrides();
+    }
+    attempts++;
+    if (attempts > 50) {
+      clearInterval(waitForModules);
+      console.warn("YouTube override: Timed out waiting for modules");
+    }
+  }, 100);
 
-  console.log("Applying YouTube overrides");
+  function applyYouTubeOverrides() {
+    console.log("✅ Applying YouTube overrides");
 
-  /** @ts-ignore */
-  const blurAmount = window.cachedBlurAmount || 20;
-  const blurStyle = `blur(${blurAmount}px)`;
-
-  /**
-   * Helper function to get all visible text including Shadow DOM
-   */
-  function getAllVisibleText(element) {
-    let text = "";
+    /** @ts-ignore */
+    const blurAmount = window.cachedBlurAmount || 20;
+    const blurStyle = `blur(${blurAmount}px)`;
     
-    // Get direct text content
-    if (element.nodeType === Node.TEXT_NODE) {
-      text += element.textContent;
-    } else {
-      // Check if element has Shadow DOM and traverse it
-      if (element.shadowRoot) {
-        for (let child of element.shadowRoot.childNodes) {
+    // Track processed images with element reference
+    const processedImages = new WeakSet();
+
+    /**
+     * Helper function to get all visible text including Shadow DOM
+     */
+    function getAllVisibleText(element) {
+      let text = "";
+      
+      if (element.nodeType === Node.TEXT_NODE) {
+        text += element.textContent;
+      } else {
+        if (element.shadowRoot) {
+          try {
+            for (let child of element.shadowRoot.childNodes) {
+              text += " " + getAllVisibleText(child);
+            }
+          } catch (e) {
+            // Ignore shadow DOM access errors
+          }
+        }
+        
+        for (let child of element.childNodes) {
           text += " " + getAllVisibleText(child);
         }
       }
       
-      // Traverse light DOM children
-      for (let child of element.childNodes) {
-        text += " " + getAllVisibleText(child);
-      }
-    }
-    
-    return text;
-  }
-
-  /**
-   * YouTube-specific blockTextContent implementation
-   */
-  function youtubeBlockTextContent() {
-    // Call original base function first for non-YouTube logic
-    const originalBlockTextContent = window.blockTextContent;
-    if (originalBlockTextContent && originalBlockTextContent !== youtubeBlockTextContent) {
-      // Don't call it since we're replacing it
+      return text;
     }
 
-    /** @ts-ignore */
-    const words = window.cachedBlockedWords || [];
-    if (words.length === 0) return;
+    /**
+     * YouTube-specific blockTextContent
+     */
+    function youtubeBlockTextContent() {
+      /** @ts-ignore */
+      const words = window.cachedBlockedWords || [];
+      if (words.length === 0) return;
 
-    // Target YouTube video preview containers
-    const videoContainers = document.querySelectorAll("ytd-video-preview");
-    console.log("YouTube: Found video previews:", videoContainers.length);
+      const videoContainers = document.querySelectorAll("ytd-video-preview");
+      
+      videoContainers.forEach(container => {
+        if (container.style.filter === blurStyle) return;
 
-    videoContainers.forEach(container => {
-      // Skip if already blurred
-      if (container.style.filter === blurStyle) return;
+        const allText = getAllVisibleText(container);
 
-      // Get all text including Shadow DOM
-      const allText = getAllVisibleText(container);
+        for (const word of words) {
+          if (new RegExp(`\\b${word}\\b`, "i").test(allText)) {
+            console.log("🎥 YouTube: Blocking video preview with word:", word);
+            container.style.filter = blurStyle;
+            break;
+          }
+        }
+      });
+    }
 
-      // Check if container text matches blocked words
-      for (const word of words) {
-        if (new RegExp(`\\b${word}\\b`, "i").test(allText)) {
-          console.log("YouTube: Blocking video preview with word:", word);
+    /**
+     * YouTube-specific face scanning
+     */
+    async function youtubeScanImages() {
+      const youtubeImages = document.querySelectorAll("ytd-thumbnail img");
+      console.log(`🎥 YouTube: Found ${youtubeImages.length} total thumbnail images`);
+      
+      let newImagesScanned = 0;
+      
+      for (const img of youtubeImages) {
+        // Skip if already processed
+        if (processedImages.has(img)) continue;
+        
+        const src = img.src || img.dataset.src;
+        if (!src) continue;
 
-          // Blur the entire preview container
-          container.style.filter = blurStyle;
+        console.log(`🎥 YouTube: Processing new thumbnail (${src.substring(0, 80)}...)`);
+        processedImages.add(img);
+        newImagesScanned++;
 
-          // Blur thumbnail component AND its image
-          const thumbnail = container.querySelector("ytd-thumbnail");
-          if (thumbnail) {
-            thumbnail.style.filter = blurStyle;
+        try {
+          if (window.checkIfFaceShouldBeBlocked) {
+            const shouldBlock = await window.checkIfFaceShouldBeBlocked(img);
             
-            // Mark all images in thumbnail as scanned and blur them directly
-            const thumbImages = thumbnail.querySelectorAll("img");
-            thumbImages.forEach(img => {
+            if (shouldBlock) {
+              console.log("🎥 YouTube: Blocking thumbnail (face detected)");
               img.style.filter = blurStyle;
-              /** @ts-ignore */
-              window.scannedImages.add(img);
-            });
-          }
-
-          // Blur metadata text - including yt-formatted-string elements
-          const titleElements = container.querySelectorAll("h3, yt-formatted-string, span, a, div");
-          titleElements.forEach(el => {
-            if (thumbnail && !el.contains(thumbnail)) {
-              el.style.filter = blurStyle;
             }
-          });
-
-          break;
+          }
+        } catch (error) {
+          console.warn("YouTube override: Error checking image:", error.message);
         }
       }
-    });
-  }
-
-  /**
-   * YouTube-specific scanImages implementation
-   */
-  function youtubeScanImages(imagesToScan = null) {
-    // Process YouTube thumbnail images specifically
-    const youtubeImages = document.querySelectorAll("ytd-thumbnail img");
-    console.log("YouTube: Found thumbnail images:", youtubeImages.length);
-
-    youtubeImages.forEach(img => {
-      // Skip if already processed
-      if (window.scannedImages.has(img) || (img.style && img.style.filter === blurStyle)) return;
-
-      const src = img.src || img.dataset.src;
-      if (!src) return;
-
-      window.scannedImages.add(img);
-
-      browser.runtime.sendMessage({
-        type: "scan-face",
-        src: src
-      }).then(result => {
-        if (result && result.block) {
-          console.log("YouTube: Blocking thumbnail and associated text (face detected)");
-          img.style.filter = blurStyle;
-
-          // Blur the entire ytd-thumbnail component
-          const ytdThumbnail = img.closest("ytd-thumbnail");
-          if (ytdThumbnail) {
-            ytdThumbnail.style.filter = blurStyle;
-          }
-
-          // Blur the video title and metadata below thumbnail
-          const videoContainer = img.closest("ytd-video-preview");
-          if (videoContainer) {
-            const titleElements = videoContainer.querySelectorAll("h3, yt-formatted-string, span, a, div");
-            titleElements.forEach(el => {
-              if (!el.contains(img)) {
-                el.style.filter = blurStyle;
-              }
-            });
-          }
-        }
-      }).catch(error => {
-        console.error("YouTube face scan error:", error);
-      });
-    });
-  }
-
-  /**
-   * Replace the global functions
-   */
-  window.blockTextContent = youtubeBlockTextContent;
-  window.scanImages = youtubeScanImages;
-
-  /**
-   * Hook into MutationObserver to catch dynamically loaded content
-   * YouTube loads new content when scrolling
-   */
-  let debounceTimer;
-  const originalStartObserver = window.startObserver;
-  window.startObserver = function(enableFaces = true) {
-    // Call original observer
-    originalStartObserver(enableFaces);
-
-    // Add YouTube-specific observer for dynamically loaded content
-    const youtubeObserver = new MutationObserver((mutations) => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        console.log("YouTube: New content detected, processing...");
-        youtubeBlockTextContent();
-        if (enableFaces) {
-          youtubeScanImages();
-        }
-      }, 300); // Debounce to avoid excessive processing
-    });
-
-    // Observe the main content area for changes
-    const mainContent = document.querySelector("ytd-rich-grid-renderer");
-    if (mainContent) {
-      youtubeObserver.observe(mainContent, {
-        childList: true,
-        subtree: true
-      });
+      
+      if (newImagesScanned > 0) {
+        console.log(`🎥 YouTube: Scanned ${newImagesScanned} new thumbnail(s)`);
+      }
     }
-  };
-}
 
-// Apply overrides when DOM is ready
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", applyYouTubeOverrides);
-} else {
-  applyYouTubeOverrides();
-}
+    // Set up MutationObserver to watch for new images
+    const observer = new MutationObserver((mutations) => {
+      console.log("🎥 YouTube: MutationObserver triggered");
+      youtubeBlockTextContent();
+      youtubeScanImages();
+    });
+
+    // Start observing the main content area
+    function setupObserver() {
+      const mainContent = document.querySelector("ytd-rich-grid-renderer, ytd-browse, #content");
+      if (mainContent) {
+        observer.observe(mainContent, {
+          childList: true,
+          subtree: true,
+          attributes: false,
+          characterData: false
+        });
+        console.log("🎥 YouTube: MutationObserver started");
+      } else {
+        console.warn("🎥 YouTube: Could not find main content area, retrying...");
+        setTimeout(setupObserver, 1000);
+      }
+    }
+
+    setupObserver();
+
+    // Also set up scroll listener as backup
+    let scrollTimeout;
+    window.addEventListener('scroll', () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        console.log("🎥 YouTube: Scroll event triggered scan");
+        youtubeBlockTextContent();
+        youtubeScanImages();
+      }, 300);
+    }, { passive: true });
+
+    // Initial scan
+    youtubeBlockTextContent();
+    youtubeScanImages();
+    
+    console.log("✅ YouTube overrides fully applied");
+  }
+})();
